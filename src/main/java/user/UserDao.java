@@ -1,0 +1,166 @@
+package user;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.sql.DataSource;
+
+import org.mindrot.jbcrypt.BCrypt;
+
+
+public class UserDao {
+
+
+	public static Connection getConnection() {
+		Connection conn;
+		try {
+			//Servers/contex.xml에 Resource에 정보를 입력해놔야함
+			Context initcontext = new InitialContext();
+			DataSource ds = (DataSource) initcontext.lookup("java:comp/env/jdbc/project");
+			conn = ds.getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return conn;
+	}
+	
+
+	//유저 정보 삭제
+	public void deleteUser(String uid) {
+		Connection conn = getConnection();
+		String sql = "UPDATE users SET isDeleted=1 WHERE uid=?;";
+		try {
+			PreparedStatement pStmt = conn.prepareStatement(sql);
+			pStmt.setString(1, uid);
+			
+			pStmt.executeUpdate();
+			pStmt.close();
+			conn.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}	
+	}
+	// 유저 정보 수정
+	public void updateUser(User u){
+		Connection conn = getConnection();
+		String sql = "UPDATE users SET pwd=?, uname=?, email=? WHERE uid=?;";
+		try {
+			PreparedStatement pStmt = conn.prepareStatement(sql);		
+			String cryptedPwd = BCrypt.hashpw(u.getPwd(), BCrypt.gensalt());
+			pStmt.setString(1, cryptedPwd);
+			pStmt.setString(2, u.getUname());	//데이터 타입맞춰주기
+			pStmt.setString(3, u.getEmail());
+			pStmt.setString(4, u.getUid());
+			
+			//Update 실행
+			pStmt.executeUpdate();
+			pStmt.close();
+			conn.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	// 로그인
+	public User login(String uid, String pwd) {
+		Connection conn = getConnection();
+		String sql = "SELECT * FROM Users WHERE  uid =?;";
+		User u = new User();
+		PreparedStatement pstmt;
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, uid);
+			ResultSet rs = pstmt.executeQuery();
+			System.out.println(rs.getString(1));					
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	// 유저 정보 보여주기
+	public User getUserinfo(String uid) {
+		Connection conn = getConnection();
+		String sql = "SELECT * FROM Users WHERE  uid =?;";
+		User u = new User();
+		PreparedStatement pstmt;
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, uid);
+			
+			//Select 실행
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				u.setUid(rs.getString(1));
+				u.setPwd(rs.getString(2));
+				u.setUname(rs.getString(3));
+				u.setEmail(rs.getString(4));		
+				u.setRegDate(LocalDate.parse(rs.getString(5)));
+			}
+			rs.close();
+			pstmt.close();
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} 
+		
+		return u;
+	}
+		
+	public List<User> listUsers(){
+		Connection conn = getConnection();
+		String sql = "SELECT * FROM users WHERE isDeleted=0 ORDER BY regDate DESC, uid LIMIT 10;";
+		List<User> list = new ArrayList<>();
+		try {
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			while(rs.next()) {
+				User u = new User();
+				u.setUid(rs.getString(1));
+				u.setPwd(rs.getString(2));
+				u.setUname(rs.getString(3));
+				u.setEmail(rs.getString(4));
+				u.setRegDate(LocalDate.parse(rs.getString(5)));	
+				list.add(u);
+			}
+			rs.close();	
+			stmt.close();
+			conn.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+		return list;
+	}
+	
+	// 유저 등록
+	public void registerUser(User u) {
+		Connection conn = getConnection();
+		String sql = "INSERT INTO users VALUES (?, ?, ?, ?, DEFAULT, DEFAULT);";
+		try {
+			PreparedStatement pStmt = conn.prepareStatement(sql);
+			pStmt.setString(1, u.getUid());	
+			String cryptedPwd = BCrypt.hashpw(u.getPwd(), BCrypt.gensalt());
+			pStmt.setString(2, cryptedPwd); 
+			pStmt.setString(3, u.getUname()); 
+			pStmt.setString(4, u.getEmail());
+
+			pStmt.executeUpdate();
+			pStmt.close();
+			conn.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+	}
+	
+	
+}
