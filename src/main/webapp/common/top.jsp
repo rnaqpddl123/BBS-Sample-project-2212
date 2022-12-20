@@ -10,10 +10,10 @@
                <a class="nav-link" href="#"><i class="fa-solid fa-house"></i> Home</a>
            </li>
            <li class="nav-item ms-3">
-               <a class="nav-link ${(menu eq 'board') ? 'active' : 'null'}" href="#"><i class="far fa-list-alt"></i> 게시판</a>
+               <a class="nav-link ${(menu eq 'board') ? 'active' : 'null'}" href="/bbs/board/list?page=1"><i class="far fa-list-alt"></i> 게시판</a>
            </li>
            <li class="nav-item ms-3">
-               <a class="nav-link ${(menu eq 'user') ? 'active' : 'null'}" href="/bbs/user/list"><i class="fas fa-user-friends"></i> 사용자</a>
+               <a class="nav-link ${(menu eq 'user') ? 'active' : 'null'}" href="/bbs/user/list?page=1"><i class="fas fa-user-friends"></i> 사용자</a>
            </li>
            <li class="nav-item ms-3">
            	<c:if test="${empty sessionScope.uid}">

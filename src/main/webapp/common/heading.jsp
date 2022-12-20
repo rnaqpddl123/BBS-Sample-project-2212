@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
-    <script src="https://kit.fontawesome.com/77ad8525ff.js" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/d119a19f5a.js" crossorigin="anonymous"></script>
     <style>
         * { font-family: 'Noto Sans KR', sans-serif; }
         a { text-decoration: none; }

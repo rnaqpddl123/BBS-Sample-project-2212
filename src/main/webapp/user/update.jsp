@@ -3,7 +3,6 @@
 <html lang="ko">
 <head>
 	<%@ include file="../common/heading.jsp" %>
-	
     <style>
         th, td { text-align: center; }
     </style>
@@ -28,23 +27,33 @@
 			                <table class="table table-borderless">
 			                    <tr>
 			                        <td><label for="uid">사용자 ID</label></td>
-			                        <td><input type="text" name="uid" id="uid" value="${uid}" disabled></td>
+			                        <td><input type="text" name="uid" value="${uid}" disabled></td>
 			                    </tr>
-			                    <tr>
-			                        <td><label for="pwd">패스워드</label></td>
-			                        <td><input type="password" name="pwd" id="pwd" placeholder="비밀번호를 입력해주세요"></td>
-			                    </tr>
+			                    <!-- TODO: 세션pwd가 있으면 비밀번호도 변경할수 있게 비밀번호 변경도 같이되게 만들기 -->
+			                    <!-- 현재비밀번호, 바꿀비밀번호, 바꿀 비밀번호확인창 만들기 세션보다는 버튼식이 나을듯 -->
+				                <tr>
+				                    <td><label for="pwd">현재 비밀번호</label></td>
+				                    <td><input type="password" name="pwd" placeholder="현재 비밀번호를 입력해주세요"></td>
+				                </tr>
+				                <tr>
+				                    <td><label for="pwd">비밀번호 변경</label></td>
+				                    <td><input type="password" name="pwd2" placeholder="바꾸실 비밀번호를 입력해주세요"></td>
+				                </tr>
+				                <tr>
+				                    <td><label for="pwd">비밀번호 변경 확인</label></td>
+				                    <td><input type="password" name="pwd3" placeholder="바꾸실 비밀번호를 한번더 입력해주세요"></td>
+				                </tr>
 			                    <tr>
 			                        <td><label for="uname">이름</label></td>
-			                        <td><input type="text" name="uname" id="uname" value="${uname}"></td>
+			                        <td><input type="text" name="uname" value="${uname}"></td>
 			                    </tr>
 			                    <tr>
 			                        <td><label for="email">이메일</label></td>
-			                        <td><input type="text" name="email" id="email" value="${email}"></td>
+			                        <td><input type="text" name="email" value="${email}"></td>
 			                    </tr>
 			                    <tr>
 			                        <td><label for="regDate">가입날짜</label></td>
-			                        <td><input type="text" name="regDate" id="regDate" value="${regDate}" disabled></td>
+			                        <td><input type="text" name="regDate" value="${regDate}" disabled></td>
 			                    </tr>
 			                    <tr>
 			                        <td colspan="2" style="text-align: center;">
