@@ -37,11 +37,11 @@
 					    	<table class="table table-borderless">
 					    		<tr>
 					    			<td>param:</td>
-					    			<td colspan="2"><input type="text" name="param"></td>
+					    			<td colspan="2"><input class="form-control" type="text" name="param"></td>
 					    		</tr>
 					    		<tr>
 					    			<td>파일:</td>
-			                        <td><input class="form-control" type="file" name="file1" id="file1"></td>
+					    			<td><input class="form-control" type="file" name="file1" id="file1"></td>
 			                        <td><input class="form-control" type="file" name="file2" id="file2"></td>
 					    		</tr>
 					    		<tr>
@@ -50,6 +50,7 @@
 					    	</table>
 					        <div id="additionalFile"></div>
 					    </form>		            
+					        
 			        </div>
 			        <div class="col-1"></div>
 			    </div>
