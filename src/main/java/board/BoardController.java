@@ -24,17 +24,18 @@ public class BoardController extends HttpServlet {
 		String action = uri[uri.length -1];
 		BoardDao dao = new BoardDao();
 //		ReplyDao rdao = new ReplyDao();
-		
 		HttpSession session = request.getSession();
+		
 		// 어떤게시판인지 활성화시키기용
 		session.setAttribute("menu", "board");
 		
 		
 		response.setContentType("text/html; charset=utf-8");	
-		String uid = null, title=null, content=null, files=null;
+		String uid = null, title=null, content=null, files=null, sessionUid=null;
 		int page = 0, bid=0;
 		RequestDispatcher rd = null;
 		Board b = null;
+		sessionUid = (String)session.getAttribute("uid");
 		
 		switch(action) {
 		case "list":
@@ -59,7 +60,11 @@ public class BoardController extends HttpServlet {
 		case "search":
 			break;
 		case "detail":
-			bid = Integer.parseInt(request.getParameter("bid"));
+			bid = Integer.parseInt((String)request.getParameter("bid"));
+			uid = request.getParameter("uid");
+			// 조회수증가,자신의 게시물을 클릭할때는 제외
+			if (! uid.equals(sessionUid))
+				dao.increaseViewCount(bid);
 			b = dao.getBoardDetail(bid);
 			request.setAttribute("board", b);
 			rd = request.getRequestDispatcher("/board/detail.jsp");
@@ -72,9 +77,8 @@ public class BoardController extends HttpServlet {
 				title = request.getParameter("title");
 				content = request.getParameter("content");
 				files = request.getParameter("files");
-				uid = (String)session.getAttribute("uid");
 				
-				b = new Board(uid, title, content, files);
+				b = new Board(sessionUid, title, content, files);
 				dao.insert(b);
 				response.sendRedirect("/bbs/board/list");
 			}

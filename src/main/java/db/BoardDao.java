@@ -134,4 +134,18 @@ public class BoardDao {
 		}
 		return b;
 	}
+	//게시글 조회수 증가
+	public void increaseViewCount(int bid) {
+		Connection conn = getConnection();
+		String sql = "UPDATE board SET viewCount=viewCount+1 WHERE bid=?;";
+		try {
+			PreparedStatement pStmt = conn.prepareStatement(sql);
+			pStmt.setInt(1, bid);
+			
+			pStmt.executeUpdate();
+			pStmt.close(); conn.close();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

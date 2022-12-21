@@ -59,7 +59,7 @@
                     <c:forEach var="board" items="${boardList}">
                     <tr>
                         <td>${board.bid}</td>
-                        <td><a href="/bbs/board/detail?bid=${board.bid}">${board.title}
+                        <td><a href="/bbs/board/detail?bid=${board.bid}&uid=${board.uid}">${board.title}
                         	<c:if test="${board.replyCount ge 1}">
                         		<span class="text-danger">[${board.replyCount}]</span>
                         	</c:if>
@@ -67,10 +67,10 @@
                         </td>
                         <td>${board.uname}</td>
                         <td>
-                        <c:if test="${today eq fn:substring(board.modTime,0, 10)}">
+                        <c:if test="${today eq fn:substring(board.modTime, 0, 10)}">
                         	${fn:substring(board.modTime,11,19)}
                         </c:if>
-                        <c:if test="${not today eq fn:substring(board.modTime,0, 10)}">
+                        <c:if test="${today ne fn:substring(board.modTime, 0, 10)}">
                         	${fn:substring(board.modTime,0,10)}
                         </c:if>
                         </td>

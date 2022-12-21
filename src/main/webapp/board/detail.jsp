@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<% pageContext.setAttribute("newlin", "\n"); %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -47,7 +48,7 @@
 
                     <div class="col-12"><hr></div>
                     <div class="col-12">
-                        ${board.content}
+                        ${fn:replace(board.content, newline, '<br>')}
                     </div>
 
                     <div class="col-12"><hr></div>
