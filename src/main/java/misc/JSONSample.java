@@ -21,7 +21,6 @@ public class JSONSample {
 		}
 		obj.put("사람들", arr);
 		System.out.println(obj);
-	
 		// JSON String --> 내부 Object
 		JSONParser parser = new JSONParser();
 		JSONObject persons = (JSONObject) parser.parse(obj.toString());
