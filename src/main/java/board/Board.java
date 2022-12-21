@@ -22,6 +22,13 @@ public class Board {
 		this.content = content;
 		this.files = files;
 	}
+	// 게시글 수정시 필요
+	Board(String title, String content, String files, int bid) {
+		this.bid = bid;
+		this.title = title;
+		this.content = content;
+		this.files = files;
+	}
 	public Board(int bid, String uid, String title, String content, LocalDateTime modTime, int viewCount, int replyCount,
 			int isDeleted, String files, String uname) {
 		super();

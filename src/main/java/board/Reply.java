@@ -11,8 +11,8 @@ public class Reply {
 	private int bid;
 	private String uname;
 	
-	Reply(){}
-	Reply(int rid, String content, LocalDateTime regDate, int isMine, String uid, int bid, String uname) {
+	public Reply(){}
+	public Reply(int rid, String content, LocalDateTime regDate, int isMine, String uid, int bid, String uname) {
 		super();
 		this.rid = rid;
 		this.content = content;
@@ -23,9 +23,8 @@ public class Reply {
 		this.uname = uname;
 	}
 	// 생성시 필요한 
-	Reply(int rid, String content, int isMine, String uid, int bid) {
+	public Reply(String content, int isMine, String uid, int bid) {
 		super();
-		this.rid = rid;
 		this.content = content;
 		this.isMine = isMine;
 		this.uid = uid;

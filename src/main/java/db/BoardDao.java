@@ -30,8 +30,8 @@ public class BoardDao {
 		return conn;
 	}
 	
-	// 게시판
-	public List<Board> listusers(String field, String query, int page) {
+	// 게시판 보기
+	public List<Board> listBoard(String field, String query, int page) {
 		Connection conn = getConnection();
 		int offset = (page - 1) *10;
 		String sql = "SELECT b.bid, b.uid, b.title, b.modtime,"
@@ -89,7 +89,7 @@ public class BoardDao {
 	// 게시글 작성
 	public void insert(Board b) {
 		Connection conn = getConnection();
-		String sql = "INSERT INTO board(uid, title, content, files) VALUES (?, ? , ?, ?);";
+		String sql = "INSERT INTO board(uid, title, content, files) VALUES (?, ?, ?, ?);";
 		try {
 			PreparedStatement pStmt = conn.prepareStatement(sql);
 			pStmt.setString(1, b.getUid());
@@ -141,6 +141,51 @@ public class BoardDao {
 		try {
 			PreparedStatement pStmt = conn.prepareStatement(sql);
 			pStmt.setInt(1, bid);
+			
+			pStmt.executeUpdate();
+			pStmt.close(); conn.close();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	// 댓글수증가
+	public void increaseReplyCount(int bid) {
+		Connection conn = getConnection();
+		String sql = "UPDATE board SET replyCount=replyCount+1 WHERE bid=?;";
+		try {
+			PreparedStatement pStmt = conn.prepareStatement(sql);
+			pStmt.setInt(1, bid);
+			
+			pStmt.executeUpdate();
+			pStmt.close(); conn.close();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	//게시글 삭제
+	public void deleteBoard(int bid) {
+		Connection conn = getConnection();
+		String sql = "UPDATE board SET isDeleted=1 WHERE bid=?;";
+		try {
+			PreparedStatement pStmt = conn.prepareStatement(sql);
+			pStmt.setInt(1, bid);
+			
+			pStmt.executeUpdate();
+			pStmt.close(); conn.close();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	//게시글 변경
+	public void update(Board b) {
+		Connection conn = getConnection();
+		String sql = "UPDATE board SET title=?, content=?, files=? WHERE bid = ?;";
+		try {
+			PreparedStatement pStmt = conn.prepareStatement(sql);
+			pStmt.setString(1, b.getTitle());
+			pStmt.setString(2, b.getContent());
+			pStmt.setString(3, b.getFiles());
+			pStmt.setInt(4, b.getBid());
 			
 			pStmt.executeUpdate();
 			pStmt.close(); conn.close();

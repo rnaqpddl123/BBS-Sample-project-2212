@@ -14,16 +14,17 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import db.BoardDao;
+import db.ReplyDao;
 
 @WebServlet({"/board/list", "/board/search", "/board/write", "/board/update", 
-			"/board/detail", "/board/delete","/board/deleteConfirm"})
+			"/board/detail", "/board/delete","/board/deleteConfirm", "/board/reply"})
 public class BoardController extends HttpServlet {
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setCharacterEncoding("utf-8");
 		String[] uri = request.getRequestURI().split("/");
 		String action = uri[uri.length -1];
 		BoardDao dao = new BoardDao();
-//		ReplyDao rdao = new ReplyDao();
+		ReplyDao replydao = new ReplyDao();
 		HttpSession session = request.getSession();
 		
 		// 어떤게시판인지 활성화시키기용
@@ -32,16 +33,16 @@ public class BoardController extends HttpServlet {
 		
 		response.setContentType("text/html; charset=utf-8");	
 		String uid = null, title=null, content=null, files=null, sessionUid=null;
-		int page = 0, bid=0;
+		int page = 0, bid=0, isMine=0;
 		RequestDispatcher rd = null;
-		Board b = null;
+		Board board = null;
+		Reply reply = null;
 		sessionUid = (String)session.getAttribute("uid");
 		
 		switch(action) {
 		case "list":
-//			page = Integer.parseInt(request.getParameter("page"));
 			page = (request.getParameter("page")==null) ? 1 : Integer.parseInt(request.getParameter("page"));
-			List<Board> list = dao.listusers("title", "", page);
+			List<Board> list = dao.listBoard("title", "", page);
 			
 			session.setAttribute("currentBoardPage", page);
 			int totalBoardNum = dao.getBoardCount();
@@ -62,11 +63,14 @@ public class BoardController extends HttpServlet {
 		case "detail":
 			bid = Integer.parseInt((String)request.getParameter("bid"));
 			uid = request.getParameter("uid");
-			// 조회수증가,자신의 게시물을 클릭할때는 제외
-			if (! uid.equals(sessionUid))
+			// 조회수증가. 단, 작성지기 읽거나 댓글 작성후에는 제외.
+			if (request.getParameter("option")==null && (!uid.equals(sessionUid)))
 				dao.increaseViewCount(bid);
-			b = dao.getBoardDetail(bid);
-			request.setAttribute("board", b);
+			board = dao.getBoardDetail(bid);
+			List<Reply> replyList = replydao.gerReplies(bid);
+			
+			request.setAttribute("board", board);
+			request.setAttribute("replyList", replyList);
 			rd = request.getRequestDispatcher("/board/detail.jsp");
 			rd.forward(request, response);
 			break;
@@ -78,16 +82,52 @@ public class BoardController extends HttpServlet {
 				content = request.getParameter("content");
 				files = request.getParameter("files");
 				
-				b = new Board(sessionUid, title, content, files);
-				dao.insert(b);
+				board = new Board(sessionUid, title, content, files);
+				dao.insert(board);
 				response.sendRedirect("/bbs/board/list");
 			}
 			break;
-		case "update":
+		case "reply":
+			content = request.getParameter("content");
+			bid = Integer.parseInt(request.getParameter("bid"));
+			uid = request.getParameter("uid"); 			// 게시글을 작성한사람의 uid
+			isMine = uid.equals(sessionUid) ? 1 : 0;	// 게시글 작성자와 댓글 작성자가 같으면1다르면0
+			
+			reply = new Reply(content, isMine, sessionUid, bid);
+			replydao.insert(reply);
+			dao.increaseReplyCount(bid);
+			// option=DNI는 조회수 늘리지 않기위해서
+			response.sendRedirect("/bbs/board/detail?bid=" + bid + "&uid=" + uid + "&option=DNI");
+			
 			break;
 		case "delete":
+			bid = Integer.parseInt(request.getParameter("bid"));
+			response.sendRedirect("/bbs/board/delete.jsp?bid=" + bid);
 			break;
 		case "deleteConfirm":
+			bid = Integer.parseInt(request.getParameter("bid"));
+			dao.deleteBoard(bid);
+			response.sendRedirect("/bbs/board/list?page=" + session.getAttribute("currentBoardPage"));
+			break;
+		case "update":					// 게시글 수정 화면으로 이동
+			if (request.getMethod().equals("GET")) {
+				bid = Integer.parseInt((String)request.getParameter("bid"));
+				board = dao.getBoardDetail(bid);
+				
+				request.setAttribute("board", board);
+				rd = request.getRequestDispatcher("/board/update.jsp?bid=" + bid);
+				rd.forward(request, response);
+			} else {
+				uid = request.getParameter(uid);
+				bid = Integer.parseInt((String)request.getParameter("bid"));
+				title = request.getParameter("title");
+				content = request.getParameter("content");
+				files = request.getParameter("files");
+					
+				board = new Board(title, content, files, bid);
+				dao.update(board);
+				response.sendRedirect("/bbs/board/detail?bid=" + bid + "&uid=" + uid);
+			}
 			break;
 		default:
 			System.out.println(request.getMethod() +"잘못된경로");
