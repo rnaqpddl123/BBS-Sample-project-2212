@@ -22,7 +22,7 @@
             <div class="col-sm-9">
                 <h3><strong>게시글 상세 조회</strong>
                     <span style="font-size: 0.6em;">
-                        <a href="/bbs/board/list?page=${currentBoardPage}" class="ms-5""><i class="fas fa-list-ul"></i> 목록</a>
+                        <a href="/bbs/board/list?p=${currentBoardPage}&f=&q=" class="ms-5""><i class="fas fa-list-ul"></i> 목록</a>
                         <!-- 본인만 수정,삭제 가능 -->
                         <c:if test="${board.uid eq uid}">
                         	<a href="/bbs/board/update?bid=${board.bid}" class="ms-3"><i class="far fa-edit"></i> 수정</a>
@@ -39,7 +39,12 @@
                     <div class="col-8">
                         <h5>${board.title}</h5>
                         <h6>글번호: ${board.bid} | ${fn:replace(board.modTime,'T',' ')}</h6>
-                        <h6>첨부파일: ${board.files}</h6>
+                        <h6>첨부파일
+                        <c:forEach var="file" items="${fileList}">
+                        	<!-- TODO: 파일 다운로드 완성 -->
+                        	<a href="/bbs/board/FileDownload?file=${file}" class="me-2" >${file}</a>
+                        </c:forEach>
+                        </h6>
                     </div>
                     <div class="col-4 text-end">
                         <h5>${board.uname}</h5>

@@ -20,9 +20,7 @@ public class JSONUtill {
 		List<String> list = null;
 		try {
 			JSONObject jsonList = (JSONObject) parser.parse(jsonStr);
-			System.out.println(jsonList);
 			JSONArray jsonArr = (JSONArray) jsonList.get("list");
-			System.out.println(jsonArr);
 			list = (List<String>) jsonArr;
 		} catch (ParseException e) {
 			e.printStackTrace();

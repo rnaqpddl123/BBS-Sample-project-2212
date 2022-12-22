@@ -15,8 +15,9 @@ import javax.servlet.http.HttpSession;
 
 import db.BoardDao;
 import db.ReplyDao;
+import misc.JSONUtill;
 
-@WebServlet({"/board/list", "/board/search", "/board/write", "/board/update", 
+@WebServlet({"/board/list", "/board/write", "/board/update", 
 			"/board/detail", "/board/delete","/board/deleteConfirm", "/board/reply"})
 public class BoardController extends HttpServlet {
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -43,16 +44,22 @@ public class BoardController extends HttpServlet {
 		
 		switch(action) {
 		case "list":
-			page = (request.getParameter("page")==null) ? 1 : Integer.parseInt(request.getParameter("page"));
-			list = dao.listBoard("title", "", page);
+			page = (request.getParameter("p")==null || request.getParameter("p")=="") ? 1 : Integer.parseInt(request.getParameter("p"));
+			String field = (request.getParameter("f")==null || request.getParameter("f")=="") ? "b.title" : request.getParameter("f");
+			String query = (request.getParameter("q")==null || request.getParameter("q")=="") ? "" : request.getParameter("q");
+			list = dao.listBoard(field, query, page);
+			
 			
 			session.setAttribute("currentBoardPage", page);
+			request.setAttribute("field", field);
+			request.setAttribute("query", query);
 			totalBoardNum = dao.getBoardCount("title", "");
 			totalPages = (int)Math.ceil(totalBoardNum/10.);
+			
+			// paenation을위한 작업
 			int startPage = (int)Math.ceil((page-0.5)/10. -1 )*10 +1;
 			int endPage = Math.min(totalPages, startPage+9);	//둘중 작은숫자
 			pageList = new ArrayList<>();
-			
 			for (int i=startPage; i<=endPage; i++)
 				pageList.add(String.valueOf(i));
 			request.setAttribute("pageList", pageList);
@@ -67,28 +74,6 @@ public class BoardController extends HttpServlet {
 			rd = request.getRequestDispatcher("/board/list.jsp");
 			rd.forward(request, response);
 			break;
-		// TODO: 페이지네이션 옆으로 옮기는걸 누르면 찾아낸거에 2페이지가 아니라 list2페이지로가버림
-		case "search":
-			String field = request.getParameter("field");
-			String query = request.getParameter("query");
-			System.out.println("field: " + field + "query: " + query);
-			list = dao.listBoard(field, query, 1);
-			
-			page =1;
-			session.setAttribute("currentBoardPage", 1);
-			totalBoardNum = dao.getBoardCount("title", "");
-			totalPages = (int)Math.ceil(totalBoardNum/10.);
-			pageList = new ArrayList<>();
-			for (int i=1; i<=totalPages; i++)
-				pageList.add(String.valueOf(i));
-			request.setAttribute("pageList", pageList);
-			
-			today = LocalDate.now().toString();
-			request.setAttribute("today", today);
-			request.setAttribute("boardList", list);
-			rd = request.getRequestDispatcher("/board/list.jsp");
-			rd.forward(request, response);
-			break;
 		case "detail":
 			bid = Integer.parseInt((String)request.getParameter("bid"));
 			uid = request.getParameter("uid");
@@ -96,8 +81,15 @@ public class BoardController extends HttpServlet {
 			if (request.getParameter("option")==null && (!uid.equals(sessionUid)))
 				dao.increaseViewCount(bid);
 			board = dao.getBoardDetail(bid);
-			List<Reply> replyList = replydao.gerReplies(bid);
 			
+			// 첨부파일 다운로드 하기위해서 
+			String jsonFiles = board.getFiles();
+			if(!(jsonFiles ==null || jsonFiles.equals(""))){
+				JSONUtill json = new JSONUtill();
+				List<String> fileList = json.parse(jsonFiles);
+				request.setAttribute("fileList", fileList);
+			}
+			List<Reply> replyList = replydao.gerReplies(bid);
 			request.setAttribute("board", board);
 			request.setAttribute("replyList", replyList);
 			rd = request.getRequestDispatcher("/board/detail.jsp");
@@ -107,35 +99,16 @@ public class BoardController extends HttpServlet {
 			if (request.getMethod().equals("GET")) {
 				response.sendRedirect("/bbs/board/write.jsp");
 			} else {
-				title = request.getParameter("title");
-				content = request.getParameter("content");
-				files = request.getParameter("files");
+				/** '/board/multiupload'(FileUpload.java)로부터 전달된 데이터를 읽음 **/
 				
-				System.out.println(title);
-				
-				// 파일 업로드 보류
-//				String tmpPath = "c:/Temp/upload";
-//				Part filePart = null;	
-//				String fileName = null;
-//		        List<String> fileList = new ArrayList<>();
-//		        for (int i=1; i<=2; i++) {
-//		            filePart = request.getPart("file" + i);		// name이 file1, file2
-//		            if (filePart == null)
-//		            	continue;
-//		            fileName = filePart.getSubmittedFileName();
-//		            System.out.println("file" + i + ": " + fileName);
-//		            if (fileName == null || fileName.equals(""))
-//		                continue;
-//		            fileList.add(fileName);
-//		            
-//		            for (Part part : request.getParts()) {
-//		                part.write(tmpPath + File.separator + fileName);
-//		            }
-//		        }
+				title= (String)request.getAttribute("title");
+				content= (String)request.getAttribute("content");
+				files = (String)request.getAttribute("files");
+
 				
 				board = new Board(sessionUid, title, content, files);
 				dao.insert(board);
-				response.sendRedirect("/bbs/board/list");
+				response.sendRedirect("/bbs/board/list?p=1&f=&q=");
 			}
 			break;
 		case "reply":
@@ -158,7 +131,7 @@ public class BoardController extends HttpServlet {
 		case "deleteConfirm":
 			bid = Integer.parseInt(request.getParameter("bid"));
 			dao.deleteBoard(bid);
-			response.sendRedirect("/bbs/board/list?page=" + session.getAttribute("currentBoardPage"));
+			response.sendRedirect("/bbs/board/list?p=" + session.getAttribute("currentBoardPage") + "&f=&q=");
 			break;
 		case "update":					// 게시글 수정 화면으로 이동
 			if (request.getMethod().equals("GET")) {
@@ -173,6 +146,7 @@ public class BoardController extends HttpServlet {
 				bid = Integer.parseInt((String)request.getParameter("bid"));
 				title = request.getParameter("title");
 				content = request.getParameter("content");
+				// TODO: 첨부파일수정
 				files = request.getParameter("files");
 					
 				board = new Board(title, content, files, bid);

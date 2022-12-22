@@ -81,7 +81,7 @@ public class UserController extends HttpServlet {
 						
 						// alert창에 메세지띄우고 화면이동시키기위해서 필요한경로와 메세지전달
 						request.setAttribute("msg", uid + "님 환영합니다");
-						request.setAttribute("url", "/bbs/board/list?page=1");
+						request.setAttribute("url", "/bbs/board/list?p=1");
 						rd = request.getRequestDispatcher("/user/alertMsg.jsp");
 						rd.forward(request, response);
 					}
@@ -133,7 +133,7 @@ public class UserController extends HttpServlet {
 						u = new User(uid, pwd, uname, email);
 						dao.registerUser(u);
 						request.setAttribute("msg", "회원가입이 완료되었습니다. 로그인해주세요.");
-						request.setAttribute("url", "/bbs/user/list?page=1");
+						request.setAttribute("url", "/bbs/user/list?p=1");
 						rd = request.getRequestDispatcher("/user/alertMsg.jsp");
 						rd.forward(request, response);
 						
@@ -172,7 +172,7 @@ public class UserController extends HttpServlet {
 					u = new User(uid,uname,email);
 					dao.updateUser(u);
 					session.setAttribute("uname", uname);
-					response.sendRedirect("/bbs/user/list?page=" + session.getAttribute("currentUserPage"));		
+					response.sendRedirect("/bbs/user/list?p=" + session.getAttribute("currentUserPage"));		
 				} else if (pwd2.equals(pwd3) && BCrypt.checkpw(pwd, u.getPwd())) {	// 비밀번호 일치하는지 확인
 					dao.updateUserWithPassword(new User(uid,pwd2,uname,email));
 					request.setAttribute("msg", u.getUid() + "님 정보가 수정되었습니다.");
@@ -200,7 +200,7 @@ public class UserController extends HttpServlet {
 			uid = request.getParameter("uid");
 			dao.deleteUser(uid);
 			request.setAttribute("msg", uid + "님의 데이터가 삭제되었습니다.");
-			request.setAttribute("url", "/bbs/user/list?page=" + session.getAttribute("currentUserPage"));
+			request.setAttribute("url", "/bbs/user/list?p=" + session.getAttribute("currentUserPage"));
 			rd = request.getRequestDispatcher("/user/alertMsg.jsp");
 			rd.forward(request, response);
 			break;
