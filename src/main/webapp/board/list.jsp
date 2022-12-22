@@ -20,7 +20,7 @@
             <!-- =============================main=========================== -->
             <div class="col-sm-9">
                 <table class="table table-sm table-borderless">
-                    <form action="" method="post">
+                    <form action="/bbs/board/search" method="post">
                         <tr class="d-flex">
                             <td class="col-6" style="text-align: left;">
                                 <h3><strong>게시글 목록</strong>
@@ -32,14 +32,14 @@
                                 </h3>
                             </td>
                             <td class="col-2">
-                                <select class="form-select me-2">
-                                    <option value="1" selected>제목</option>
-                                    <option value="2">본문</option>
-                                    <option value="3">글쓴이</option>
+                                <select class="form-select me-2" name="field">
+                                    <option value="title" selected>제목</option>
+                                    <option value="content">본문</option>
+                                    <option value="uname">글쓴이</option>
                                 </select>
                             </td>
                             <td class="col-3">
-                                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                                <input class="form-control me-2" type="search" placeholder="검색내용" name="query">
                             </td>
                             <td class="col-1">
                                 <button class="btn btn-outline-primary" type="submit">검색</button>
@@ -79,13 +79,23 @@
                     </c:forEach>         
                 </table>
                 <ul class="pagination justify-content-center mt-4">
+                <c:if test="${currentBoardPage gt 10}">
+                    <li class="page-item"><a class="page-link" href="/bbs/board/list?page=${startPage-1}">&laquo;</a></li>
+                </c:if>
+                <c:if test="${currentBoardPage le 10}">
                     <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+                </c:if>
                     <c:forEach var="page" items="${pageList}" varStatus="loop">
 			        	<li class="page-item ${(currentBoardPage eq page) ? 'active' : ''}">
 			        		<a class="page-link" href="/bbs/board/list?page=${page}">${page}</a>
 			       		</li>
 		           </c:forEach>
+		        <c:if test="${totalPages gt endPage}">
+                    <li class="page-item"><a class="page-link" href="/bbs/board/list?page=${endPage-1}">&raquo;</a></li>
+                </c:if>
+                <c:if test="${totalPages le endPage}">
                     <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                </c:if>
                 </ul>
             </div>
             <!-- ================main========================= -->

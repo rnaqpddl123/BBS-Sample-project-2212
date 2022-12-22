@@ -32,33 +32,62 @@ public class BoardController extends HttpServlet {
 		
 		
 		response.setContentType("text/html; charset=utf-8");	
-		String uid = null, title=null, content=null, files=null, sessionUid=null;
-		int page = 0, bid=0, isMine=0;
+		String uid = null, title=null, content=null, files=null, sessionUid=null, today=null;
+		int page = 0, bid=0, isMine=0, totalBoardNum=0, totalPages=0;
 		RequestDispatcher rd = null;
 		Board board = null;
 		Reply reply = null;
+		List<Board> list = null;
+		List<String> pageList = null;
 		sessionUid = (String)session.getAttribute("uid");
 		
 		switch(action) {
 		case "list":
 			page = (request.getParameter("page")==null) ? 1 : Integer.parseInt(request.getParameter("page"));
-			List<Board> list = dao.listBoard("title", "", page);
+			list = dao.listBoard("title", "", page);
 			
 			session.setAttribute("currentBoardPage", page);
-			int totalBoardNum = dao.getBoardCount();
-			int totalPages = (int)Math.ceil(totalBoardNum/10.);
-			List<String> pageList = new ArrayList<>();
-			for (int i=1; i<=totalPages; i++)
+			totalBoardNum = dao.getBoardCount("title", "");
+			totalPages = (int)Math.ceil(totalBoardNum/10.);
+			int startPage = (int)Math.ceil((page-0.5)/10. -1 )*10 +1;
+			int endPage = Math.min(totalPages, startPage+9);	//둘중 작은숫자
+			pageList = new ArrayList<>();
+			
+			for (int i=startPage; i<=endPage; i++)
 				pageList.add(String.valueOf(i));
 			request.setAttribute("pageList", pageList);
+			request.setAttribute("startPage", startPage);
+			request.setAttribute("endPage", endPage);
+			request.setAttribute("totalPages", totalPages);
 			
-			String today = LocalDate.now().toString();
+			
+			today = LocalDate.now().toString();
 			request.setAttribute("today", today);
 			request.setAttribute("boardList", list);
 			rd = request.getRequestDispatcher("/board/list.jsp");
 			rd.forward(request, response);
 			break;
+		// TODO: 페이지네이션 옆으로 옮기는걸 누르면 찾아낸거에 2페이지가 아니라 list2페이지로가버림
 		case "search":
+			String field = request.getParameter("field");
+			String query = request.getParameter("query");
+			System.out.println("field: " + field + "query: " + query);
+			list = dao.listBoard(field, query, 1);
+			
+			page =1;
+			session.setAttribute("currentBoardPage", 1);
+			totalBoardNum = dao.getBoardCount("title", "");
+			totalPages = (int)Math.ceil(totalBoardNum/10.);
+			pageList = new ArrayList<>();
+			for (int i=1; i<=totalPages; i++)
+				pageList.add(String.valueOf(i));
+			request.setAttribute("pageList", pageList);
+			
+			today = LocalDate.now().toString();
+			request.setAttribute("today", today);
+			request.setAttribute("boardList", list);
+			rd = request.getRequestDispatcher("/board/list.jsp");
+			rd.forward(request, response);
 			break;
 		case "detail":
 			bid = Integer.parseInt((String)request.getParameter("bid"));
@@ -81,6 +110,28 @@ public class BoardController extends HttpServlet {
 				title = request.getParameter("title");
 				content = request.getParameter("content");
 				files = request.getParameter("files");
+				
+				System.out.println(title);
+				
+				// 파일 업로드 보류
+//				String tmpPath = "c:/Temp/upload";
+//				Part filePart = null;	
+//				String fileName = null;
+//		        List<String> fileList = new ArrayList<>();
+//		        for (int i=1; i<=2; i++) {
+//		            filePart = request.getPart("file" + i);		// name이 file1, file2
+//		            if (filePart == null)
+//		            	continue;
+//		            fileName = filePart.getSubmittedFileName();
+//		            System.out.println("file" + i + ": " + fileName);
+//		            if (fileName == null || fileName.equals(""))
+//		                continue;
+//		            fileList.add(fileName);
+//		            
+//		            for (Part part : request.getParts()) {
+//		                part.write(tmpPath + File.separator + fileName);
+//		            }
+//		        }
 				
 				board = new Board(sessionUid, title, content, files);
 				dao.insert(board);

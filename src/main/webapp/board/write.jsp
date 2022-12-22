@@ -23,7 +23,8 @@
 			        <div class="col-1"></div>
 			        <div class="col-10">
 			        	<!-- enctype="multipart/form-data"는 첨부파일 인코딩을 위해서 넣어주어야함 -->
-			            <form action="/bbs/board/write" method="post" enctype="multipart/form-data">
+			            <!-- <form action="/bbs/board/write" method="post" enctype="multipart/form-data"> -->
+			            <form action="/bbs/board/write" method="post">
 			            	<input type="hidden" name="uid" value="${uid}">
 			                <table class="table table-borderless">
 			                    <tr>
