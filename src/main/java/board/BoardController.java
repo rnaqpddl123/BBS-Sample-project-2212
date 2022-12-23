@@ -1,5 +1,6 @@
 package board;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ import misc.JSONUtill;
 			"/board/detail", "/board/delete","/board/deleteConfirm", "/board/reply"})
 public class BoardController extends HttpServlet {
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		request.setCharacterEncoding("utf-8");
+//		request.setCharacterEncoding("utf-8");	filter에서 걸렀기때문에 생략가능
 		String[] uri = request.getRequestURI().split("/");
 		String action = uri[uri.length -1];
 		BoardDao dao = new BoardDao();
@@ -31,9 +32,8 @@ public class BoardController extends HttpServlet {
 		// 어떤게시판인지 활성화시키기용
 		session.setAttribute("menu", "board");
 		
-		
 		response.setContentType("text/html; charset=utf-8");	
-		String uid = null, title=null, content=null, files=null, sessionUid=null, today=null;
+		String uid = null, title=null, content=null, files=null, sessionUid=null, today=null, jsonFiles=null;
 		int page = 0, bid=0, isMine=0, totalBoardNum=0, totalPages=0;
 		RequestDispatcher rd = null;
 		Board board = null;
@@ -71,7 +71,7 @@ public class BoardController extends HttpServlet {
 			today = LocalDate.now().toString();
 			request.setAttribute("today", today);
 			request.setAttribute("boardList", list);
-			rd = request.getRequestDispatcher("/board/list.jsp");
+			rd = request.getRequestDispatcher("/WEB-INF/view/board/list.jsp");
 			rd.forward(request, response);
 			break;
 		case "detail":
@@ -83,28 +83,31 @@ public class BoardController extends HttpServlet {
 			board = dao.getBoardDetail(bid);
 			
 			// 첨부파일 다운로드 하기위해서 
-			String jsonFiles = board.getFiles();
+			jsonFiles = board.getFiles();
 			if(!(jsonFiles ==null || jsonFiles.equals(""))){
 				JSONUtill json = new JSONUtill();
 				List<String> fileList = json.parse(jsonFiles);
 				request.setAttribute("fileList", fileList);
 			}
+			
 			List<Reply> replyList = replydao.gerReplies(bid);
 			request.setAttribute("board", board);
 			request.setAttribute("replyList", replyList);
-			rd = request.getRequestDispatcher("/board/detail.jsp");
+			rd = request.getRequestDispatcher("/WEB-INF/view/board/detail.jsp");
 			rd.forward(request, response);
 			break;
 		case "write":
 			if (request.getMethod().equals("GET")) {
-				response.sendRedirect("/bbs/board/write.jsp");
+				rd = request.getRequestDispatcher("/WEB-INF/view/board/write2.jsp");
+				rd.forward(request, response);
 			} else {
-				/** '/board/multiupload'(FileUpload.java)로부터 전달된 데이터를 읽음 **/
+				/** '/board/filepload'(FileUpload.java)로부터 전달된 데이터를 읽음 **/
 				
 				title= (String)request.getAttribute("title");
 				content= (String)request.getAttribute("content");
 				files = (String)request.getAttribute("files");
-
+				
+				
 				
 				board = new Board(sessionUid, title, content, files);
 				dao.insert(board);
@@ -126,29 +129,56 @@ public class BoardController extends HttpServlet {
 			break;
 		case "delete":
 			bid = Integer.parseInt(request.getParameter("bid"));
-			response.sendRedirect("/bbs/board/delete.jsp?bid=" + bid);
+			rd = request.getRequestDispatcher("/WEB-INF/view/board/delete.jsp?bid=" + bid);
+			rd.forward(request, response);
 			break;
 		case "deleteConfirm":
 			bid = Integer.parseInt(request.getParameter("bid"));
 			dao.deleteBoard(bid);
 			response.sendRedirect("/bbs/board/list?p=" + session.getAttribute("currentBoardPage") + "&f=&q=");
 			break;
-		case "update":					// 게시글 수정 화면으로 이동
+		case "update":
 			if (request.getMethod().equals("GET")) {
 				bid = Integer.parseInt((String)request.getParameter("bid"));
 				board = dao.getBoardDetail(bid);
 				
+				// 첨부파일 불러오기용
+				jsonFiles = board.getFiles();
+				if(!(jsonFiles ==null || jsonFiles.equals(""))){
+					JSONUtill json = new JSONUtill();
+					List<String> fileList = json.parse(jsonFiles);
+					session.setAttribute("fileList", fileList);
+				}
+
 				request.setAttribute("board", board);
-				rd = request.getRequestDispatcher("/board/update.jsp?bid=" + bid);
+				rd = request.getRequestDispatcher("/WEB-INF/view/board/update2.jsp?bid=" + bid);
 				rd.forward(request, response);
 			} else {
-				uid = request.getParameter(uid);
-				bid = Integer.parseInt((String)request.getParameter("bid"));
-				title = request.getParameter("title");
-				content = request.getParameter("content");
-				// TODO: 첨부파일수정
-				files = request.getParameter("files");
-					
+				uid = sessionUid;
+				bid = Integer.parseInt((String)request.getAttribute("bid"));
+				title = (String)request.getAttribute("title");
+				content = (String)request.getAttribute("content");
+
+				List<String> listAdditionalFiles = (List<String>) session.getAttribute("fileList");
+				
+				String delName = (String) request.getAttribute("delFile");
+				
+				// 기존 파일에서 삭제하기로한 파일들 삭제
+				if (!(delName == null || delName.equals(""))) {
+					File delFile = new File("c:/Temp/upload/" + delName);
+					delFile.delete();
+					listAdditionalFiles.remove(delName);
+				}
+				// 파일들 다시 json화
+				JSONUtill json = new JSONUtill();
+				files = (String) request.getAttribute("files");		// FileUpload에서 넘어온 것
+				List<String> tmpList = json.parse(files);
+				for (String tmp: tmpList)
+					listAdditionalFiles.add(tmp);
+				files = json.stringfy(listAdditionalFiles);
+				
+				
+				
 				board = new Board(title, content, files, bid);
 				dao.update(board);
 				response.sendRedirect("/bbs/board/detail?bid=" + bid + "&uid=" + uid);

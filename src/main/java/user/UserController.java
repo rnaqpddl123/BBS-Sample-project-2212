@@ -31,7 +31,7 @@ public class UserController extends HttpServlet {
 	 * @see HttpServlet#service(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		request.setCharacterEncoding("utf-8");
+//		request.setCharacterEncoding("utf-8"); 	filter에서 걸렀기때문에 생략가능
 		String[] uri = request.getRequestURI().split("/");
 		String action = uri[uri.length -1];
 		UserDao dao = new UserDao();
@@ -60,13 +60,14 @@ public class UserController extends HttpServlet {
 			request.setAttribute("pageList", pageList);
 			
 			request.setAttribute("userList", list);
-			rd = request.getRequestDispatcher("/user/list.jsp");
+			rd = request.getRequestDispatcher("/WEB-INF/view/user/list.jsp");
 			rd.forward(request, response);
 			break;
 		case "login":
 			if (request.getMethod().equals("GET")) {
 				session.setAttribute("menu", "login");
-				response.sendRedirect("/bbs/user/login.jsp");
+				rd = request.getRequestDispatcher("/WEB-INF/view/user/login.jsp");
+				rd.forward(request, response);
 			}
 			else {
 				uid = request.getParameter("uid");
@@ -82,21 +83,21 @@ public class UserController extends HttpServlet {
 						// alert창에 메세지띄우고 화면이동시키기위해서 필요한경로와 메세지전달
 						request.setAttribute("msg", uid + "님 환영합니다");
 						request.setAttribute("url", "/bbs/board/list?p=1");
-						rd = request.getRequestDispatcher("/user/alertMsg.jsp");
+						rd = request.getRequestDispatcher("/WEB-INF/view/user/alertMsg.jsp");
 						rd.forward(request, response);
 					}
 					else {		
 						// 비밀번호가 틀림, 로그인페이지로 다시이동
 						request.setAttribute("msg", "잘못된 패스워드입니다. 다시 입력하세요");
-						request.setAttribute("url", "/bbs/user/login.jsp");
-						rd = request.getRequestDispatcher("/user/alertMsg.jsp");
+						request.setAttribute("url", "/bbs/user/login");
+						rd = request.getRequestDispatcher("/WEB-INF/view/user/alertMsg.jsp");
 						rd.forward(request, response);
 					}
 				} else { 			// uid가 없음
 					// 회원 가입 페이지로 안내
 					request.setAttribute("msg", "회원가입페이지로 이동합니다.");
-					request.setAttribute("url", "/bbs/user/register.jsp");
-					rd = request.getRequestDispatcher("/user/alertMsg.jsp");
+					request.setAttribute("url", "/bbs/user/login");
+					rd = request.getRequestDispatcher("/WEB-INF/view/user/alertMsg.jsp");
 					rd.forward(request, response);
 				}
 			}
@@ -107,12 +108,14 @@ public class UserController extends HttpServlet {
 			
 			request.setAttribute("msg", "로그아웃 되었습니다.");
 			request.setAttribute("url", "/bbs/user/list");
-			rd = request.getRequestDispatcher("/user/alertMsg.jsp");
+			rd = request.getRequestDispatcher("/WEB-INF/view/user/alertMsg.jsp");
 			rd.forward(request, response);		
 			break;
 		case "register" :
 			if (request.getMethod().equals("GET")) {
-				response.sendRedirect("/bbs/user/register.jsp");
+				System.out.println("확인용");
+				rd = request.getRequestDispatcher("/WEB-INF/view/user/register.jsp");
+				rd.forward(request, response);
 			}
 			else {
 				uid = request.getParameter("uid").strip();
@@ -125,7 +128,7 @@ public class UserController extends HttpServlet {
 				if (u.getUid() != null) {			// 기존 id가 중복인경우
 					request.setAttribute("msg", "중복 id가 존재합니다.");
 					request.setAttribute("url", "/bbs/user/register");
-					rd = request.getRequestDispatcher("/user/alertMsg.jsp");
+					rd = request.getRequestDispatcher("/WEB-INF/view/user/alertMsg.jsp");
 					rd.forward(request, response);
 				}
 				else {								// id가 중복이 아닌경우
@@ -134,15 +137,13 @@ public class UserController extends HttpServlet {
 						dao.registerUser(u);
 						request.setAttribute("msg", "회원가입이 완료되었습니다. 로그인해주세요.");
 						request.setAttribute("url", "/bbs/user/list?p=1");
-						rd = request.getRequestDispatcher("/user/alertMsg.jsp");
+						rd = request.getRequestDispatcher("/WEB-INF/view/user/alertMsg.jsp");
 						rd.forward(request, response);
-						
-//						response.sendRedirect("/bbs/user/list");
 					}		
 					else {							// 비밀번호확인이 틀린경우
 						request.setAttribute("msg", "패스워드 입력이 잘못되었습니다.");
 						request.setAttribute("url", "/bbs/user/register");
-						rd = request.getRequestDispatcher("/user/alertMsg.jsp");
+						rd = request.getRequestDispatcher("/WEB-INF/view/user/alertMsg.jsp");
 						rd.forward(request, response);
 					}
 				}	
@@ -157,7 +158,7 @@ public class UserController extends HttpServlet {
 				request.setAttribute("uname", u.getUname());
 				request.setAttribute("email", u.getEmail());
 				request.setAttribute("regDate", u.getRegDate());
-				rd = request.getRequestDispatcher("/user/update.jsp");
+				rd = request.getRequestDispatcher("/WEB-INF/view/user/update.jsp");
 				rd.forward(request, response);				
 			} else {
 				uid = request.getParameter("uid");
@@ -177,31 +178,32 @@ public class UserController extends HttpServlet {
 					dao.updateUserWithPassword(new User(uid,pwd2,uname,email));
 					request.setAttribute("msg", u.getUid() + "님 정보가 수정되었습니다.");
 					request.setAttribute("url", "/bbs/user/list");
-					rd = request.getRequestDispatcher("/user/alertMsg.jsp");
+					rd = request.getRequestDispatcher("/WEB-INF/view/user/alertMsg.jsp");
 					rd.forward(request, response);
 				} else if (!BCrypt.checkpw(pwd, u.getPwd())) {	//현재 비밀번호가 틀렸을경우
 					request.setAttribute("msg", "현재 비밀번호가 틀리셧습니다. 다시한번 확인해주세요.");
 					request.setAttribute("url", "/bbs/user/update");
-					rd = request.getRequestDispatcher("/user/alertMsg.jsp");
+					rd = request.getRequestDispatcher("/WEB-INF/view/user/alertMsg.jsp");
 					rd.forward(request, response);	
 				} else {
 					request.setAttribute("msg", "변경하실 비밀번호가 일치하지 않습니다. 다시한번확인해주세요.");
 					request.setAttribute("url", "/bbs/user/update");
-					rd = request.getRequestDispatcher("/user/alertMsg.jsp");
+					rd = request.getRequestDispatcher("/WEB-INF/view/user/alertMsg.jsp");
 					rd.forward(request, response);
 				}
 			}
 			break;
 		case "delete" :
 			uid = request.getParameter("uid");
-			response.sendRedirect("/bbs/user/delete.jsp?uid=" + uid);
+			rd = request.getRequestDispatcher("/WEB-INF/view/user/delete.jsp?uid=" + uid);
+			rd.forward(request, response);
 			break;
 		case "deleteConfirm" :
 			uid = request.getParameter("uid");
 			dao.deleteUser(uid);
 			request.setAttribute("msg", uid + "님의 데이터가 삭제되었습니다.");
 			request.setAttribute("url", "/bbs/user/list?p=" + session.getAttribute("currentUserPage"));
-			rd = request.getRequestDispatcher("/user/alertMsg.jsp");
+			rd = request.getRequestDispatcher("/WEB-INF/view/user/alertMsg.jsp");
 			rd.forward(request, response);
 			break;
 		default :

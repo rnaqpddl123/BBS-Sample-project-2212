@@ -19,13 +19,13 @@ public class FileDownload extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setCharacterEncoding("utf-8");
 		response.setContentType("text/html; charset=utf-8");
-		String fileName = request.getParameter("file");
-		String file = "c:/Temp/upload/" + fileName;
+		String file = request.getParameter("file");
+		String fileName = "c:/Temp/upload/" + file;
 		
 		OutputStream out = response.getOutputStream();
-		File f = new File(file);
+		File f = new File(fileName);
 		response.setHeader("Cache-Control", "no-cache");
-		response.addHeader("Content-disposition", "attachment; fileName="+fileName);
+		response.addHeader("Content-disposition", "attachment; fileName="+file);
 		FileInputStream in = new FileInputStream(f);
 		byte[] buffer = new byte[1024*8];
 		while(true) {
