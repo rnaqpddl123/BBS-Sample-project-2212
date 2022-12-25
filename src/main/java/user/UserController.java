@@ -37,7 +37,6 @@ public class UserController extends HttpServlet {
 		UserDao dao = new UserDao();
 		HttpSession session = request.getSession();
 		// 어떤게시판인지 활성화시키기용
-		session.setAttribute("menu", "user");
 		
 		response.setContentType("text/html; charset=utf-8");		
 		RequestDispatcher rd = null;
@@ -51,6 +50,7 @@ public class UserController extends HttpServlet {
 			
 			List<User> list = dao.listUsers(page);
 			// pagenation을위한 준비
+			session.setAttribute("menu", "user");
 			session.setAttribute("currentUserPage", page);
 			int totalUsers = dao.getUserCount();
 			int totalPages = (int)Math.ceil(totalUsers/10.);
@@ -96,7 +96,7 @@ public class UserController extends HttpServlet {
 				} else { 			// uid가 없음
 					// 회원 가입 페이지로 안내
 					request.setAttribute("msg", "회원가입페이지로 이동합니다.");
-					request.setAttribute("url", "/bbs/user/login");
+					request.setAttribute("url", "/bbs/user/register");
 					rd = request.getRequestDispatcher("/WEB-INF/view/user/alertMsg.jsp");
 					rd.forward(request, response);
 				}
@@ -113,7 +113,6 @@ public class UserController extends HttpServlet {
 			break;
 		case "register" :
 			if (request.getMethod().equals("GET")) {
-				System.out.println("확인용");
 				rd = request.getRequestDispatcher("/WEB-INF/view/user/register.jsp");
 				rd.forward(request, response);
 			}
