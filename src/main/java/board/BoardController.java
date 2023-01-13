@@ -53,7 +53,7 @@ public class BoardController extends HttpServlet {
 			session.setAttribute("currentBoardPage", page);
 			request.setAttribute("field", field);
 			request.setAttribute("query", query);
-			totalBoardNum = dao.getBoardCount("title", "");
+			totalBoardNum = dao.getBoardCount(field, query);
 			totalPages = (int)Math.ceil(totalBoardNum/10.);
 			
 			// paenation을위한 작업
